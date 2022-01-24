@@ -107,7 +107,6 @@ class App {
 
     this.renderer.setSize(this.container.clientWidth, this.container.clientHeight)
     this.renderer.setPixelRatio(Math.min(1.5, window.devicePixelRatio))
-    this.renderer.setClearColor(0x121212)
     this.renderer.physicallyCorrectLights = true
   }
 
@@ -185,12 +184,6 @@ class App {
      * Scene configuration
      */
     const sceneFolder = this.pane.addFolder({ title: 'Scene' })
-
-    let params = { background: { r: 18, g: 18, b: 18 } }
-
-    sceneFolder.addInput(params, 'background', { label: 'Background Color' }).on('change', e => {
-      this.renderer.setClearColor(new Color(e.value.r / 255, e.value.g / 255, e.value.b / 255))
-    })
 
     sceneFolder.addMonitor(this, 'hover', { label: 'Hover on mesh' })
   }
