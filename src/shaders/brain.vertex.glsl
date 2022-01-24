@@ -1,10 +1,8 @@
 uniform vec3 uPointer;
+uniform vec3 uColor;
 uniform float uRandom;
 
 varying vec3 vColor;
-
-#define colorA vec3(250.0, 235.0, 239.0) / 255.0
-#define colorB vec3(51.0, 61.0, 121.0) / 255.0
 
 #define PI 3.14159265359
 
@@ -22,7 +20,7 @@ void main() {
   // Define the color depending on the above value
   float c = smoothstep(0.45, 0.1, d);
 
-  float scale = 1.5 + c*9.0;
+  float scale = 1. + c*9.;
   vec3 pos = position;
   pos *= scale;
   pos.xz *= rotate(PI * c * uRandom);
@@ -33,5 +31,5 @@ void main() {
 
   gl_Position = projectionMatrix * modelViewMatrix * mvPosition;
 
-  vColor = mix(colorA, colorB, c);
+  vColor = uColor;
 }

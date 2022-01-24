@@ -4,7 +4,6 @@ import {
   WebGLRenderer,
   PerspectiveCamera,
   BoxGeometry,
-  MeshBasicMaterial,
   ShaderMaterial,
   Color,
   Clock,
@@ -34,6 +33,13 @@ class App {
     this.container = document.querySelector(container)
 
     this.hover = false
+
+    this.colors = [
+      new Color(0x963CBD),
+      new Color(0xFF6F61),
+      new Color(0xC5299B),
+      new Color(0xFEAE51)
+    ]
 
     this._resizeCb = () => this._onResize()
     this._mousemoveCb = e => this._onMousemove(e)
@@ -114,15 +120,15 @@ class App {
         const material = new ShaderMaterial({
           vertexShader: require('./shaders/brain.vertex.glsl'),
           fragmentShader: require('./shaders/brain.fragment.glsl'),
-          wireframe: false,
+          wireframe: true,
           uniforms: {
             uPointer: { value: new Vector3() },
+            uColor: { value: new Color() },
             uRandom: { value: 0 }
           }
         })
 
         this.mesh = mesh
-        this.mesh.material = new MeshBasicMaterial({ color: 0x550000 })
 
         {
           const dummy = new Object3D()
@@ -143,6 +149,9 @@ class App {
 
             this.instancedMesh.setMatrixAt(i / 3, dummy.matrix)
             this.instancedMesh.setUniformAt('uRandom', i / 3, MathUtils.randFloat(-1, 1))
+
+            const colorIndex = MathUtils.randInt(0, this.colors.length - 1)
+            this.instancedMesh.setUniformAt('uColor', i / 3, this.colors[colorIndex])
           }
         }
 
@@ -216,11 +225,20 @@ class App {
       this.hover = true
     }
 
-    this.mesh.worldToLocal(this.point.copy(this.intersects[0].point))
+    // this.mesh.worldToLocal(this.point.copy(this.intersects[0].point))
 
-    for (let i = 0; i < this.instancedMesh.count; i++) {
-      this.instancedMesh.setUniformAt('uPointer', i, this.point)
-    }
+    gsap.to(this.point, {
+      x: () => this.intersects[0]?.point.x ?? 0,
+      y: () => this.intersects[0]?.point.y ?? 0,
+      z: () => this.intersects[0]?.point.z ?? 0,
+      overwrite: true,
+      duration: 0.3,
+      onUpdate: () => {
+        for (let i = 0; i < this.instancedMesh.count; i++) {
+          this.instancedMesh.setUniformAt('uPointer', i, this.point)
+        }
+      }
+    })
   }
 
   _onResize() {
