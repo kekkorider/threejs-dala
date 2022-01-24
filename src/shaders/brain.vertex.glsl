@@ -1,6 +1,6 @@
 uniform vec3 uPointer;
 uniform vec3 uColor;
-uniform float uRandom;
+uniform float uRotation;
 uniform float uHover;
 
 varying vec3 vColor;
@@ -24,8 +24,8 @@ void main() {
   float scale = 1. + c*8.*uHover;
   vec3 pos = position;
   pos *= scale;
-  pos.xz *= rotate(PI * c * uRandom);
-  pos.xy *= rotate(PI * c * uRandom);
+  pos.xz *= rotate(PI * c * uRotation);
+  pos.xy *= rotate(PI * c * uRotation);
 
   // Re-define `mvPosition` with the scaled and rotated position.
   mvPosition = instanceMatrix * vec4(pos, 1.0);

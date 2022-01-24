@@ -6,12 +6,12 @@ import {
   BoxGeometry,
   ShaderMaterial,
   Color,
-  Clock,
   Vector2,
   Vector3,
   Raycaster,
   Object3D,
-  MathUtils
+  MathUtils,
+  LoadingManager
 } from 'three'
 
 // Remove this if you don't need to load any 3D model
@@ -50,11 +50,12 @@ class App {
     this._createScene()
     this._createCamera()
     this._createRenderer()
-    this._createClock()
     this._createRaycaster()
-    this._addListeners()
+    this._createLoader()
 
     this._loadModel().then(() => {
+      this._addListeners()
+
       this.renderer.setAnimationLoop(() => {
         stats.begin()
 
@@ -74,10 +75,6 @@ class App {
   }
 
   _update() {
-    const elapsed = this.clock.getElapsedTime()
-
-    // this.mesh.rotation.y = elapsed*0.3
-
     this.camera.lookAt(0, 0, 0)
   }
 
@@ -107,15 +104,28 @@ class App {
     this.renderer.physicallyCorrectLights = true
   }
 
+  _createLoader() {
+    this.loadingManager = new LoadingManager()
+
+    this.loadingManager.onLoad = () => {
+      document.documentElement.classList.add('model-loaded')
+    }
+
+    this.gltfLoader = new GLTFLoader(this.loadingManager)
+  }
+
   /**
-   * Load a 3D model and append it to the scene
+   * Load the 3D model and position a set of `InstancedMesh` on each vertex.
    */
   _loadModel() {
     return new Promise(resolve => {
-      this.loader = new GLTFLoader()
+      this.gltfLoader.load('./brain.glb', gltf => {
+        // The brain model is not added to the scene because is not necessary
+        // for the raycaster to work.
+        this.brain = gltf.scene.children[0]
 
-      this.loader.load('./brain.glb', gltf => {
-        const mesh = gltf.scene.children[0]
+        // Create the `InstancedMesh`
+        const geometry = new BoxGeometry(0.004, 0.004, 0.004, 1, 1, 1)
 
         const material = new ShaderMaterial({
           vertexShader: require('./shaders/brain.vertex.glsl'),
@@ -124,39 +134,38 @@ class App {
           uniforms: {
             uPointer: { value: new Vector3() },
             uColor: { value: new Color() },
-            uRandom: { value: 0 },
+            uRotation: { value: 0 },
             uHover: { value: this.uniforms.uHover }
           }
         })
 
-        this.mesh = mesh
+        this.instancedMesh = new InstancedUniformsMesh(geometry, material, this.brain.geometry.attributes.position.count)
 
-        {
-          const dummy = new Object3D()
-          const geom = new BoxGeometry(0.004, 0.004, 0.004, 1, 1, 1)
-          this.instancedMesh = new InstancedUniformsMesh(geom, material, this.mesh.geometry.attributes.position.count)
+        // Add the `InstancedMesh` to the scene
+        this.scene.add(this.instancedMesh)
 
-          this.scene.add(this.instancedMesh)
+        // Dummy `Object3D` that will contain the matrix of each instance
+        const dummy = new Object3D()
 
-          const positions = this.mesh.geometry.attributes.position.array
-          for (let i = 0; i < positions.length; i += 3) {
-            dummy.position.set(
-              positions[i + 0],
-              positions[i + 1],
-              positions[i + 2]
-            )
+        // Get the X, Y and Z values of each vertex of the geometry and use them to
+        // set the position of each instance.
+        // Also set the `uColor` and `uRotation` uniforms.
+        const positions = this.brain.geometry.attributes.position.array
+        for (let i = 0; i < positions.length; i += 3) {
+          dummy.position.set(
+            positions[i + 0],
+            positions[i + 1],
+            positions[i + 2]
+          )
 
-            dummy.updateMatrix()
+          dummy.updateMatrix()
 
-            this.instancedMesh.setMatrixAt(i / 3, dummy.matrix)
-            this.instancedMesh.setUniformAt('uRandom', i / 3, MathUtils.randFloat(-1, 1))
+          this.instancedMesh.setMatrixAt(i / 3, dummy.matrix)
+          this.instancedMesh.setUniformAt('uRotation', i / 3, MathUtils.randFloat(-1, 1))
 
-            const colorIndex = MathUtils.randInt(0, this.colors.length - 1)
-            this.instancedMesh.setUniformAt('uColor', i / 3, this.colors[colorIndex])
-          }
+          const colorIndex = MathUtils.randInt(0, this.colors.length - 1)
+          this.instancedMesh.setUniformAt('uColor', i / 3, this.colors[colorIndex])
         }
-
-        // this.scene.add(this.mesh)
 
         resolve()
       })
@@ -168,10 +177,6 @@ class App {
     this.raycaster = new Raycaster()
     this.intersects = []
     this.point = new Vector3()
-  }
-
-  _createClock() {
-    this.clock = new Clock()
   }
 
   _addListeners() {
@@ -193,40 +198,39 @@ class App {
     gsap.to(this.camera.position, {
       x: () => x*0.15,
       y: () => y*0.1,
-      duration: 0.3
+      duration: 0.5
     })
 
     this.raycaster.setFromCamera(this.mouse, this.camera)
-    this.intersects = this.raycaster.intersectObject(this.mesh)
 
-    if (this.intersects.length === 0) {
+    // Check if the ray casted by the `Raycaster` intersects with the brain model
+    this.intersects = this.raycaster.intersectObject(this.brain)
+
+    if (this.intersects.length === 0) { // Mouseleave
       if (this.hover) {
         this.hover = false
         this._animateHoverUniform(0)
       }
-
-      return
-    }
-
-    if (!this.hover) {
-      this.hover = true
-      this._animateHoverUniform(1)
-    }
-
-    // this.mesh.worldToLocal(this.point.copy(this.intersects[0].point))
-
-    gsap.to(this.point, {
-      x: () => this.intersects[0]?.point.x ?? 0,
-      y: () => this.intersects[0]?.point.y ?? 0,
-      z: () => this.intersects[0]?.point.z ?? 0,
-      overwrite: true,
-      duration: 0.3,
-      onUpdate: () => {
-        for (let i = 0; i < this.instancedMesh.count; i++) {
-          this.instancedMesh.setUniformAt('uPointer', i, this.point)
-        }
+    } else { // Mouseenter
+      if (!this.hover) {
+        this.hover = true
+        this._animateHoverUniform(1)
       }
-    })
+
+      // Tween the point to project on the brain mesh
+      gsap.to(this.point, {
+        x: () => this.intersects[0]?.point.x || 0,
+        y: () => this.intersects[0]?.point.y || 0,
+        z: () => this.intersects[0]?.point.z || 0,
+        overwrite: true,
+        duration: 0.3,
+        onUpdate: () => {
+          for (let i = 0; i < this.instancedMesh.count; i++) {
+            this.instancedMesh.setUniformAt('uPointer', i, this.point)
+          }
+        }
+      })
+    }
   }
 
   _animateHoverUniform(value) {

@@ -15,7 +15,13 @@ body {
   width: 100%;
 
   canvas {
+    opacity: 0;
     outline: none;
+    transition: 1s opacity;
+
+    html.model-loaded & {
+      opacity: 1;
+    }
   }
 }
 
