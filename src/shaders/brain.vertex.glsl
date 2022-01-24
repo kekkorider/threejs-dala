@@ -7,17 +7,23 @@ varying vec3 vColor;
 #define colorB vec3(51.0, 61.0, 121.0) / 255.0
 
 void main() {
-  // Distance between the point projected from the mouse and each vertex
-  float d = distance(uPointer, position);
+  // First, calculate `mvPosition` to get the distance between the instance and the
+  // projected point `uPointer`.
+  vec4 mvPosition = vec4(position, 1.0);
+  mvPosition = instanceMatrix * mvPosition;
+
+  // Distance between the point projected from the mouse and each instance
+  float d = distance(uPointer, mvPosition.xyz);
 
   // Define the color depending on the above value
-  float c = smoothstep(0.35, 0.1, d) * uHover;
+  float c = smoothstep(0.45, 0.1, d);
 
-  vec3 pos = position;
-  // Scale the position based on the distance
-  pos = pos * (1.0 + c*0.2);
+  float scale = 1.0 + c*6.0;
 
-  gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
+  // Re-define `mvPosition` updating the scale.
+  mvPosition = instanceMatrix * vec4(position*scale, 1.0);
 
-  vColor = mix(colorB, colorA, c);
+  gl_Position = projectionMatrix * modelViewMatrix * mvPosition;
+
+  vColor = mix(colorA, colorB, c);
 }

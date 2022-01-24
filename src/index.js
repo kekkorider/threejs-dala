@@ -3,18 +3,23 @@ import {
   Scene,
   WebGLRenderer,
   PerspectiveCamera,
+  BoxGeometry,
+  MeshBasicMaterial,
   ShaderMaterial,
   Color,
   Clock,
   Vector2,
   Vector3,
-  Raycaster
+  Raycaster,
+  Object3D
 } from 'three'
 
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
 
 // Remove this if you don't need to load any 3D model
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader'
+
+import { InstancedUniformsMesh } from 'three-instanced-uniforms-mesh'
 
 import { Pane } from 'tweakpane'
 import Stats from 'stats.js'
@@ -108,19 +113,38 @@ class App {
         const material = new ShaderMaterial({
           vertexShader: require('./shaders/brain.vertex.glsl'),
           fragmentShader: require('./shaders/brain.fragment.glsl'),
-          wireframe: true,
+          wireframe: false,
           uniforms: {
             uPointer: { value: new Vector3() },
             uHover: { value: 0 }
           }
         })
 
-        material.flatShading = true
-
         this.mesh = mesh
-        this.mesh.material = material
+        this.mesh.material = new MeshBasicMaterial({ color: 0x550000 })
 
-        this.scene.add(this.mesh)
+        {
+          const dummy = new Object3D()
+          const geom = new BoxGeometry(0.003, 0.003, 0.003, 1, 1, 1)
+          this.instancedMesh = new InstancedUniformsMesh(geom, material, this.mesh.geometry.attributes.position.count)
+
+          this.scene.add(this.instancedMesh)
+
+          const positions = this.mesh.geometry.attributes.position.array
+          for (let i = 0; i < positions.length; i += 3) {
+            dummy.position.set(
+              positions[i + 0],
+              positions[i + 1],
+              positions[i + 2]
+            )
+
+            dummy.updateMatrix()
+
+            this.instancedMesh.setMatrixAt(i / 3, dummy.matrix)
+          }
+        }
+
+        // this.scene.add(this.mesh)
 
         resolve()
       })
@@ -180,31 +204,26 @@ class App {
 
     if (this.intersects.length === 0) {
       if (this.hover) {
-        gsap.to(this.mesh.material.uniforms.uHover, {
-          value: 0,
-          duration: 0.45,
-          overwrite: true
-        })
+        this.hover = 0
 
-        this.hover = false
+        for (let i = 0; i < this.instancedMesh.count; i++) {
+          this.instancedMesh.setUniformAt('uHover', i, this.hover ? 1 : 0)
+        }
       }
 
       return
     }
 
     if (!this.hover) {
-      gsap.to(this.mesh.material.uniforms.uHover, {
-        value: 1,
-        duration: 0.3,
-        overwrite: true
-      })
-
       this.hover = true
     }
 
     this.mesh.worldToLocal(this.point.copy(this.intersects[0].point))
 
-    this.mesh.material.uniforms.uPointer.value = this.point
+    for (let i = 0; i < this.instancedMesh.count; i++) {
+      this.instancedMesh.setUniformAt('uPointer', i, this.point)
+      this.instancedMesh.setUniformAt('uHover', i, this.hover ? 1 : 0)
+    }
   }
 
   _onResize() {

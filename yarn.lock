@@ -5247,6 +5247,13 @@ terser@^5.6.1:
     source-map "~0.7.2"
     source-map-support "~0.5.20"
 
+three-instanced-uniforms-mesh@^0.45.0:
+  version "0.45.0"
+  resolved "https://registry.yarnpkg.com/three-instanced-uniforms-mesh/-/three-instanced-uniforms-mesh-0.45.0.tgz#2c099499166ecb56268a69858fcae71bf0b536eb"
+  integrity sha512-saSk8zct6uig4p9ejuZoLv18sHrxzFOt2OaBNbKXD2SplqlPCEbsNStjWVzXvOR4LVo38BTbfXUsRbupMW1MHw==
+  dependencies:
+    troika-three-utils "^0.45.0"
+
 three@^0.136.0:
   version "0.136.0"
   resolved "https://registry.yarnpkg.com/three/-/three-0.136.0.tgz#b1504db021b46398ef468aa7849f3dcabb814f50"
@@ -5351,6 +5358,11 @@ tr46@^1.0.1:
   integrity sha1-qLE/1r/SSJUZZ0zN5VujaTtwbQk=
   dependencies:
     punycode "^2.1.0"
+
+troika-three-utils@^0.45.0:
+  version "0.45.0"
+  resolved "https://registry.yarnpkg.com/troika-three-utils/-/troika-three-utils-0.45.0.tgz#d624e4d2427275fd2750d542766635be37042920"
+  integrity sha512-VJqEx8aww2El/zSbbnmjdhaAOQ4LM0CVJmKh385Vi/CzruhMmWEaunMRI/J1vh4MbbGo+dREu73FkMkr/PXypA==
 
 tty-browserify@0.0.0:
   version "0.0.0"
