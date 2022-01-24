@@ -135,6 +135,7 @@ class App {
             uPointer: { value: new Vector3() },
             uColor: { value: new Color() },
             uRotation: { value: 0 },
+            uSize: { value: 0 },
             uHover: { value: this.uniforms.uHover }
           }
         })
@@ -161,7 +162,10 @@ class App {
           dummy.updateMatrix()
 
           this.instancedMesh.setMatrixAt(i / 3, dummy.matrix)
+
           this.instancedMesh.setUniformAt('uRotation', i / 3, MathUtils.randFloat(-1, 1))
+
+          this.instancedMesh.setUniformAt('uSize', i / 3, MathUtils.randFloat(0.3, 3))
 
           const colorIndex = MathUtils.randInt(0, this.colors.length - 1)
           this.instancedMesh.setUniformAt('uColor', i / 3, this.colors[colorIndex])
