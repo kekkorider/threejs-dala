@@ -14,8 +14,6 @@ import {
   MathUtils
 } from 'three'
 
-import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
-
 // Remove this if you don't need to load any 3D model
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader'
 
@@ -56,8 +54,6 @@ class App {
     this._createClock()
     this._createRaycaster()
     this._addListeners()
-    this._createControls()
-    this._createDebugPanel()
 
     this._loadModel().then(() => {
       this.renderer.setAnimationLoop(() => {
@@ -175,21 +171,6 @@ class App {
     this.point = new Vector3()
   }
 
-  _createControls() {
-    this.controls = new OrbitControls(this.camera, this.renderer.domElement)
-  }
-
-  _createDebugPanel() {
-    this.pane = new Pane()
-
-    /**
-     * Scene configuration
-     */
-    const sceneFolder = this.pane.addFolder({ title: 'Scene' })
-
-    sceneFolder.addMonitor(this, 'hover', { label: 'Hover on mesh' })
-  }
-
   _createClock() {
     this.clock = new Clock()
   }
@@ -211,8 +192,8 @@ class App {
     this.mouse.set(x, y)
 
     gsap.to(this.camera.position, {
-      x: () => x*0.2,
-      y: () => y*0.2,
+      x: () => x*0.15,
+      y: () => y*0.1,
       duration: 0.3
     })
 

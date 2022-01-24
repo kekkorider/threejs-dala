@@ -19,7 +19,6 @@
     "gsap": "^3.9.1",
     "stats.js": "^0.17.0",
     "three": "^0.136.0",
-    "three-instanced-uniforms-mesh": "^0.45.0",
-    "tweakpane": "^3.0.7"
+    "three-instanced-uniforms-mesh": "^0.45.0"
   }
 }
