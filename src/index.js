@@ -103,17 +103,21 @@ class App {
       this.loader = new GLTFLoader()
 
       this.loader.load('./brain.glb', gltf => {
-        this.mesh = gltf.scene.children[0]
+        const mesh = gltf.scene.children[0]
 
         const material = new ShaderMaterial({
           vertexShader: require('./shaders/brain.vertex.glsl'),
           fragmentShader: require('./shaders/brain.fragment.glsl'),
+          wireframe: true,
           uniforms: {
             uPointer: { value: new Vector3() },
             uHover: { value: 0 }
           }
         })
 
+        material.flatShading = true
+
+        this.mesh = mesh
         this.mesh.material = material
 
         this.scene.add(this.mesh)
@@ -147,6 +151,8 @@ class App {
     sceneFolder.addInput(params, 'background', { label: 'Background Color' }).on('change', e => {
       this.renderer.setClearColor(new Color(e.value.r / 255, e.value.g / 255, e.value.b / 255))
     })
+
+    sceneFolder.addMonitor(this, 'hover', { label: 'Hover on mesh' })
   }
 
   _createClock() {
