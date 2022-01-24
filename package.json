@@ -16,6 +16,7 @@
     "sass": "^1.49.0"
   },
   "dependencies": {
+    "stats.js": "^0.17.0",
     "three": "^0.136.0",
     "tweakpane": "^3.0.7"
   }

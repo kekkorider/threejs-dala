@@ -5,7 +5,10 @@ import {
   PerspectiveCamera,
   ShaderMaterial,
   Color,
-  Clock
+  Clock,
+  Vector2,
+  Vector3,
+  Raycaster
 } from 'three'
 
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
@@ -14,12 +17,17 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader'
 
 import { Pane } from 'tweakpane'
+import Stats from 'stats.js'
+
+const stats = new Stats()
+document.body.appendChild(stats.dom)
 
 class App {
   constructor(container) {
     this.container = document.querySelector(container)
 
     this._resizeCb = () => this._onResize()
+    this._mousemoveCb = e => this._onMousemove(e)
   }
 
   init() {
@@ -27,14 +35,19 @@ class App {
     this._createCamera()
     this._createRenderer()
     this._createClock()
+    this._createRaycaster()
     this._addListeners()
     this._createControls()
     this._createDebugPanel()
 
     this._loadModel().then(() => {
       this.renderer.setAnimationLoop(() => {
+        stats.begin()
+
         this._update()
         this._render()
+
+        stats.end()
       })
 
       console.log(this)
@@ -48,6 +61,8 @@ class App {
 
   _update() {
     const elapsed = this.clock.getElapsedTime()
+
+    this.mesh.rotation.y = elapsed*0.3
   }
 
   _render() {
@@ -60,7 +75,7 @@ class App {
 
   _createCamera() {
     this.camera = new PerspectiveCamera(75, this.container.clientWidth / this.container.clientHeight, 0.1, 100)
-    this.camera.position.set(-1, 0.3, 1.2)
+    this.camera.position.set(0, 0, 1.2)
   }
 
   _createRenderer() {
@@ -85,22 +100,30 @@ class App {
       this.loader = new GLTFLoader()
 
       this.loader.load('./brain.glb', gltf => {
-        const mesh = gltf.scene.children[0]
+        this.mesh = gltf.scene.children[0]
 
         const material = new ShaderMaterial({
-          vertexShader: require('./shaders/sample.vertex.glsl'),
-          fragmentShader: require('./shaders/sample.fragment.glsl'),
-          transparent: true,
-          wireframe: true
+          vertexShader: require('./shaders/brain.vertex.glsl'),
+          fragmentShader: require('./shaders/brain.fragment.glsl'),
+          uniforms: {
+            uPointer: { value: [2, 10, 0] }
+          }
         })
 
-        mesh.material = material
+        this.mesh.material = material
 
-        this.scene.add(mesh)
+        this.scene.add(this.mesh)
 
         resolve()
       })
     })
+  }
+
+  _createRaycaster() {
+    this.mouse = new Vector2()
+    this.raycaster = new Raycaster()
+    this.intersects = []
+    this.point = new Vector3()
   }
 
   _createControls() {
@@ -128,10 +151,28 @@ class App {
 
   _addListeners() {
     window.addEventListener('resize', this._resizeCb, { passive: true })
+    window.addEventListener('mousemove', this._mousemoveCb, { passive: true })
   }
 
   _removeListeners() {
     window.removeEventListener('resize', this._resizeCb, { passive: true })
+    window.removeEventListener('mousemove', this._mousemoveCb, { passive: true })
+  }
+
+  _onMousemove(e) {
+    this.mouse.set(
+      e.clientX / this.container.offsetWidth * 2 - 1,
+      -(e.clientY / this.container.offsetHeight * 2 - 1)
+    )
+
+    this.raycaster.setFromCamera(this.mouse, this.camera)
+    this.intersects = this.raycaster.intersectObject(this.mesh)
+
+    if (this.intersects.length === 0) return
+
+    this.mesh.worldToLocal(this.point.copy(this.intersects[0].point))
+
+    this.mesh.material.uniforms.uPointer.value = this.point
   }
 
   _onResize() {
