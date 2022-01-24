@@ -18,6 +18,7 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader'
 
 import { Pane } from 'tweakpane'
 import Stats from 'stats.js'
+import { gsap } from 'gsap'
 
 const stats = new Stats()
 document.body.appendChild(stats.dom)
@@ -25,6 +26,8 @@ document.body.appendChild(stats.dom)
 class App {
   constructor(container) {
     this.container = document.querySelector(container)
+
+    this.hover = false
 
     this._resizeCb = () => this._onResize()
     this._mousemoveCb = e => this._onMousemove(e)
@@ -62,7 +65,7 @@ class App {
   _update() {
     const elapsed = this.clock.getElapsedTime()
 
-    this.mesh.rotation.y = elapsed*0.3
+    // this.mesh.rotation.y = elapsed*0.3
   }
 
   _render() {
@@ -106,7 +109,8 @@ class App {
           vertexShader: require('./shaders/brain.vertex.glsl'),
           fragmentShader: require('./shaders/brain.fragment.glsl'),
           uniforms: {
-            uPointer: { value: [2, 10, 0] }
+            uPointer: { value: new Vector3() },
+            uHover: { value: 0 }
           }
         })
 
@@ -168,7 +172,29 @@ class App {
     this.raycaster.setFromCamera(this.mouse, this.camera)
     this.intersects = this.raycaster.intersectObject(this.mesh)
 
-    if (this.intersects.length === 0) return
+    if (this.intersects.length === 0) {
+      if (this.hover) {
+        gsap.to(this.mesh.material.uniforms.uHover, {
+          value: 0,
+          duration: 0.45,
+          overwrite: true
+        })
+
+        this.hover = false
+      }
+
+      return
+    }
+
+    if (!this.hover) {
+      gsap.to(this.mesh.material.uniforms.uHover, {
+        value: 1,
+        duration: 0.3,
+        overwrite: true
+      })
+
+      this.hover = true
+    }
 
     this.mesh.worldToLocal(this.point.copy(this.intersects[0].point))
 
