@@ -19,7 +19,6 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader'
 
 import { InstancedUniformsMesh } from 'three-instanced-uniforms-mesh'
 
-import { Pane } from 'tweakpane'
 import Stats from 'stats.js'
 import { gsap } from 'gsap'
 
