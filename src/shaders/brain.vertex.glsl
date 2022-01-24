@@ -1,10 +1,14 @@
 uniform vec3 uPointer;
-uniform float uHover;
+uniform float uRandom;
 
 varying vec3 vColor;
 
 #define colorA vec3(250.0, 235.0, 239.0) / 255.0
 #define colorB vec3(51.0, 61.0, 121.0) / 255.0
+
+#define PI 3.14159265359
+
+#pragma glslify: rotate = require(./modules/rotate.glsl)
 
 void main() {
   // First, calculate `mvPosition` to get the distance between the instance and the
@@ -18,10 +22,14 @@ void main() {
   // Define the color depending on the above value
   float c = smoothstep(0.45, 0.1, d);
 
-  float scale = 1.0 + c*6.0;
+  float scale = 1.5 + c*9.0;
+  vec3 pos = position;
+  pos *= scale;
+  pos.xz *= rotate(PI * c * uRandom);
+  pos.xy *= rotate(PI * c * uRandom);
 
-  // Re-define `mvPosition` updating the scale.
-  mvPosition = instanceMatrix * vec4(position*scale, 1.0);
+  // Re-define `mvPosition` with the scaled and rotated position.
+  mvPosition = instanceMatrix * vec4(pos, 1.0);
 
   gl_Position = projectionMatrix * modelViewMatrix * mvPosition;
 

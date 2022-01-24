@@ -11,7 +11,8 @@ import {
   Vector2,
   Vector3,
   Raycaster,
-  Object3D
+  Object3D,
+  MathUtils
 } from 'three'
 
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
@@ -116,7 +117,7 @@ class App {
           wireframe: false,
           uniforms: {
             uPointer: { value: new Vector3() },
-            uHover: { value: 0 }
+            uRandom: { value: 0 }
           }
         })
 
@@ -141,6 +142,7 @@ class App {
             dummy.updateMatrix()
 
             this.instancedMesh.setMatrixAt(i / 3, dummy.matrix)
+            this.instancedMesh.setUniformAt('uRandom', i / 3, MathUtils.randFloat(-1, 1))
           }
         }
 
@@ -204,11 +206,7 @@ class App {
 
     if (this.intersects.length === 0) {
       if (this.hover) {
-        this.hover = 0
-
-        for (let i = 0; i < this.instancedMesh.count; i++) {
-          this.instancedMesh.setUniformAt('uHover', i, this.hover ? 1 : 0)
-        }
+        this.hover = false
       }
 
       return
@@ -222,7 +220,6 @@ class App {
 
     for (let i = 0; i < this.instancedMesh.count; i++) {
       this.instancedMesh.setUniformAt('uPointer', i, this.point)
-      this.instancedMesh.setUniformAt('uHover', i, this.hover ? 1 : 0)
     }
   }
 
