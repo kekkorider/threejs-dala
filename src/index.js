@@ -82,6 +82,8 @@ class App {
     const elapsed = this.clock.getElapsedTime()
 
     // this.mesh.rotation.y = elapsed*0.3
+
+    this.camera.lookAt(0, 0, 0)
   }
 
   _render() {
@@ -203,10 +205,16 @@ class App {
   }
 
   _onMousemove(e) {
-    this.mouse.set(
-      e.clientX / this.container.offsetWidth * 2 - 1,
-      -(e.clientY / this.container.offsetHeight * 2 - 1)
-    )
+    const x = e.clientX / this.container.offsetWidth * 2 - 1
+    const y = -(e.clientY / this.container.offsetHeight * 2 - 1)
+
+    this.mouse.set(x, y)
+
+    gsap.to(this.camera.position, {
+      x: () => x*0.2,
+      y: () => y*0.2,
+      duration: 0.3
+    })
 
     this.raycaster.setFromCamera(this.mouse, this.camera)
     this.intersects = this.raycaster.intersectObject(this.mesh)
