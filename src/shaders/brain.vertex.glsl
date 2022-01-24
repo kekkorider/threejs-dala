@@ -1,6 +1,7 @@
 uniform vec3 uPointer;
 uniform vec3 uColor;
 uniform float uRandom;
+uniform float uHover;
 
 varying vec3 vColor;
 
@@ -20,7 +21,7 @@ void main() {
   // Define the color depending on the above value
   float c = smoothstep(0.45, 0.1, d);
 
-  float scale = 1. + c*9.;
+  float scale = 1. + c*8.*uHover;
   vec3 pos = position;
   pos *= scale;
   pos.xz *= rotate(PI * c * uRandom);

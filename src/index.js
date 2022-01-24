@@ -41,6 +41,10 @@ class App {
       new Color(0xFEAE51)
     ]
 
+    this.uniforms = {
+      uHover: 0
+    }
+
     this._resizeCb = () => this._onResize()
     this._mousemoveCb = e => this._onMousemove(e)
   }
@@ -124,7 +128,8 @@ class App {
           uniforms: {
             uPointer: { value: new Vector3() },
             uColor: { value: new Color() },
-            uRandom: { value: 0 }
+            uRandom: { value: 0 },
+            uHover: { value: this.uniforms.uHover }
           }
         })
 
@@ -132,7 +137,7 @@ class App {
 
         {
           const dummy = new Object3D()
-          const geom = new BoxGeometry(0.003, 0.003, 0.003, 1, 1, 1)
+          const geom = new BoxGeometry(0.004, 0.004, 0.004, 1, 1, 1)
           this.instancedMesh = new InstancedUniformsMesh(geom, material, this.mesh.geometry.attributes.position.count)
 
           this.scene.add(this.instancedMesh)
@@ -216,6 +221,7 @@ class App {
     if (this.intersects.length === 0) {
       if (this.hover) {
         this.hover = false
+        this._animateHoverUniform(0)
       }
 
       return
@@ -223,6 +229,7 @@ class App {
 
     if (!this.hover) {
       this.hover = true
+      this._animateHoverUniform(1)
     }
 
     // this.mesh.worldToLocal(this.point.copy(this.intersects[0].point))
@@ -236,6 +243,18 @@ class App {
       onUpdate: () => {
         for (let i = 0; i < this.instancedMesh.count; i++) {
           this.instancedMesh.setUniformAt('uPointer', i, this.point)
+        }
+      }
+    })
+  }
+
+  _animateHoverUniform(value) {
+    gsap.to(this.uniforms, {
+      uHover: value,
+      duration: 0.25,
+      onUpdate: () => {
+        for (let i = 0; i < this.instancedMesh.count; i++) {
+          this.instancedMesh.setUniformAt('uHover', i, this.uniforms.uHover)
         }
       }
     })
