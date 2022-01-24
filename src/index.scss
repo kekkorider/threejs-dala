@@ -1,9 +1,14 @@
+* {
+  box-sizing: border-box;
+}
+
 html {
   background: #692a84;
   background: radial-gradient(circle, #692a84 0%, #3c184c 65%);
 }
 
 body {
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
   overflow: hidden;
   height: 100vh;
   margin: 0;
@@ -21,6 +26,35 @@ body {
 
     html.model-loaded & {
       opacity: 1;
+    }
+  }
+}
+
+#info {
+  bottom: 40px;
+  color: white;
+  padding: 0 20px;
+  position: fixed;
+  width: 100%;
+
+  @media (min-width: 767px) {
+    padding: 0 40px;
+  }
+
+  p {
+    line-height: 1.4;
+    margin: 0;
+
+    & + p {
+      margin-top: 0.5em;
+    }
+  }
+
+  a {
+    color: #FEAE51;
+
+    &:hover {
+      color: white;
     }
   }
 }
