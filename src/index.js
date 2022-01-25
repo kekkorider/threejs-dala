@@ -52,6 +52,7 @@ class App {
     this._createRenderer()
     this._createRaycaster()
     this._createLoader()
+    this._checkMobile()
 
     this._loadModel().then(() => {
       this._addListeners()
@@ -76,6 +77,7 @@ class App {
 
   _update() {
     this.camera.lookAt(0, 0, 0)
+    this.camera.position.z = this.isMobile ? 2.3 : 1.2
   }
 
   _render() {
@@ -249,10 +251,15 @@ class App {
     })
   }
 
+  _checkMobile() {
+    this.isMobile = window.innerWidth < 767
+  }
+
   _onResize() {
     this.camera.aspect = this.container.clientWidth / this.container.clientHeight
     this.camera.updateProjectionMatrix()
     this.renderer.setSize(this.container.clientWidth, this.container.clientHeight)
+    this._checkMobile()
   }
 }
 

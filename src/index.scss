@@ -33,11 +33,13 @@ body {
 #info {
   bottom: 40px;
   color: white;
+  font-size: 14px;
   padding: 0 20px;
   position: fixed;
   width: 100%;
 
   @media (min-width: 767px) {
+    font-size: 16px;
     padding: 0 40px;
   }
 
